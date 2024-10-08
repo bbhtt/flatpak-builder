@@ -1,6 +1,6 @@
 [submodule "libglnx"]
 	path = subprojects/libglnx
-	url = https://gitlab.gnome.org/GNOME/libglnx.git
+	url = https://github.com/GNOME/libglnx.git
 [submodule "debugedit"]
 	path = subprojects/debugedit
 	url = https://sourceware.org/git/debugedit.git
