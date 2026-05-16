@@ -13,6 +13,7 @@ jobs:
   release:
     name: Build and publish release
     runs-on: ubuntu-24.04
+    container: ubuntu:26.04
     permissions:
       contents: write
     steps:
@@ -24,9 +25,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y findutils
-          sudo apt-get install -y \
+          apt-get update
+          apt-get install -y findutils
+          apt-get install -y \
             gcc \
             perl \
             jq \
