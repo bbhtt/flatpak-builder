@@ -37,6 +37,11 @@ jobs:
 
           echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
 
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install -y git findutils
+
       - name: Checkout repository
         # 6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -46,8 +51,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          apt-get update
-          apt-get install -y findutils
           apt-get install -y \
             gcc \
             perl \
