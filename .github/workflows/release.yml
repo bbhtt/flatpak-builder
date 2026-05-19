@@ -5,6 +5,13 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
 
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag/version to use for dry run'
+        required: false
+        default: '1.4.8'
+
 env:
   DEBIAN_FRONTEND: noninteractive
   BUILDDIR: builddir
@@ -16,12 +23,26 @@ jobs:
     container: ubuntu:26.04
     permissions:
       contents: write
+
     steps:
+      - name: Determine release tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+          else
+            TAG="${GITHUB_REF_NAME}"
+            echo "DRY_RUN=false" >> $GITHUB_ENV
+          fi
+
+          echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
+
       - name: Checkout repository
         # 6.0.2
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Install Dependencies
         run: |
@@ -42,7 +63,7 @@ jobs:
       - name: Verify tag matches meson version
         run: |
           VERSION=$(meson introspect --projectinfo ${BUILDDIR} | jq -r .version)
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${RELEASE_TAG}"
 
           echo "Meson version: $VERSION"
           echo "Git tag:       $TAG"
@@ -56,7 +77,7 @@ jobs:
 
       - name: Extract changelog from NEWS
         run: |
-          VERSION="${GITHUB_REF_NAME}"
+          VERSION="${RELEASE_TAG}"
 
           {
             echo "releaseChangelog<<EOF"
@@ -67,7 +88,7 @@ jobs:
 
       - name: Determine prerelease
         run: |
-          VERSION="${GITHUB_REF_NAME}"
+          VERSION="${RELEASE_TAG}"
           MINOR=$(echo "$VERSION" | cut -d. -f2)
 
           if [ $((MINOR % 2)) -eq 1 ]; then
@@ -82,6 +103,7 @@ jobs:
           ls -lh ${BUILDDIR}/meson-dist/
 
       - name: Create GitHub release
+        if: env.DRY_RUN != 'true'
         # 1.21.0
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
         with:
@@ -91,3 +113,11 @@ jobs:
           prerelease: ${{ env.preRelease }}
           artifacts: builddir/meson-dist/*
           immutableCreate: true
+
+      - name: Dry run summary
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "Dry run completed successfully"
+          echo "Tag: ${RELEASE_TAG}"
+          echo "Artifacts:"
+          ls -lh builddir/meson-dist/
