@@ -1,8 +1,6 @@
 Changes in 1.5.0
 ================
 
-TBD (last: 5b0efc0)
-
 * Record licence files in common licence directories
 * Abort on invalid module names
 * Run locale migration after cleanup
