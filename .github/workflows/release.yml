@@ -99,6 +99,9 @@ jobs:
 
       - name: Create dist tarball
         run: |
+          pwd
+          ls -lA
+          git status
           meson dist --include-subprojects -C ${BUILDDIR}
           ls -lh ${BUILDDIR}/meson-dist/
 
